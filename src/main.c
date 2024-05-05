@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include <SDL2/SDL.h>
 
 #define GRID_W 640
@@ -19,23 +21,29 @@ typedef enum EBodyType {
     BODY_DYNAMIC = 1, /* It can move */
 } EBodyType;
 
-typedef struct Cell {
-    /* Each cell in the grid can contain a body. */
-    bool has_body;
+typedef struct Body {
+    /* Next body in the linked list */
+    struct Body* next;
 
     /* The body type determines whether it can move or not. The color will
      * change depending on the type when rendering. */
     EBodyType type;
 
+    /* X and Y positions */
+    float x, y;
+
+    /* X and Y velocity */
+    float vel_x, vel_y;
+
     /* The mass will determine the attraction force of the body, and it's size
      * when rendering. */
-    int mass;
-} Cell;
+    float mass;
+} Body;
 
 /*----------------------------------------------------------------------------*/
 /* Globals */
 
-static Cell grid[GRID_H * GRID_W];
+static Body* bodies = NULL;
 
 static uint32_t color_palette[] = {
     [BODY_STATIC]  = 0x555555,
@@ -147,24 +155,59 @@ static int draw_circle_filled(SDL_Renderer* rend, int x, int y, int r,
 /*----------------------------------------------------------------------------*/
 /* Orbit functions */
 
-static void add_body(int x, int y, EBodyType type) {
-    grid[GRID_W * y + x].has_body = true;
-    grid[GRID_W * y + x].type     = type;
-    grid[GRID_W * y + x].mass     = 4;
+static Body* get_last_body(void) {
+    Body* body = bodies;
+
+    /* Caller should make sure this is never the case */
+    if (!body)
+        return NULL;
+
+    while (body->next != NULL)
+        body = body->next;
+
+    return body;
+}
+
+static void add_body(float x, float y, EBodyType type) {
+    /* Allocate new Body */
+    Body* new_body  = malloc(sizeof(Body));
+    new_body->type  = type;
+    new_body->mass  = 7.f;
+    new_body->x     = x;
+    new_body->y     = y;
+    new_body->vel_x = 0.f;
+    new_body->vel_y = 0.f;
+    new_body->next  = NULL;
+
+    /* Add to the END of the linked list of Body structs. This is important so
+     * the latter bodies are rendered on top of the previous ones. */
+    if (bodies == NULL) {
+        /* This is the first body, overwrite `bodies' */
+        bodies = new_body;
+    } else {
+        /* Otherwise, append to the linked list */
+        Body* last_body = get_last_body();
+        last_body->next = new_body;
+    }
 }
 
 static void render_grid(SDL_Renderer* rend) {
-    for (int y = 0; y < GRID_H; y++) {
-        for (int x = 0; x < GRID_W; x++) {
-            Cell body = grid[GRID_W * y + x];
-            if (!body.has_body)
-                continue;
+    for (Body* body = bodies; body != NULL; body = body->next) {
+        assert(body->type < LENGTH(color_palette));
 
-            assert(body.type < LENGTH(color_palette));
-            uint32_t color = color_palette[body.type];
+        /* Round float positions to get the grid coordinates */
+        const int x = (int)roundf(body->x);
+        const int y = (int)roundf(body->y);
 
-            draw_circle(rend, x, y, body.mass, color);
-        }
+        /* Round mass to get the circle radius */
+        const int radius = (int)roundf(body->mass);
+
+        const uint32_t color = color_palette[body->type];
+
+        if (body->type == BODY_STATIC)
+            draw_circle(rend, x, y, radius, color);
+        else
+            draw_circle_filled(rend, x, y, radius, color);
     }
 }
 
@@ -235,8 +278,8 @@ int main(void) {
         SDL_RenderClear(sdl_renderer);
 
         /* DELME: Testing */
-        draw_circle(sdl_renderer, 100, 100, 40, 0xFF0000);
-        draw_circle_filled(sdl_renderer, 200, 100, 40, 0xFF0000);
+        draw_circle(sdl_renderer, 50, 100, 40, 0xFF0000);
+        draw_circle_filled(sdl_renderer, 140, 100, 40, 0xFF0000);
 
         /* Render the valid bodies */
         render_grid(sdl_renderer);
