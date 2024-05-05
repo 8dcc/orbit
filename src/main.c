@@ -191,6 +191,30 @@ static void add_body(float x, float y, EBodyType type) {
     }
 }
 
+/*
+ * The gravitational force of each body is calculated with this formula:
+ *    F = G * (m1 * m2) / r^2
+ * Where 'G' is the gravitational constant, 'm1' and 'm2' are the mass of each
+ * body, and 'r' is the distance between the objects. In this case, we can skip
+ * this 'G' constant since we are using pixels.
+ *
+ * The effect of a force is to accelerate the body. The relationship is the
+ * following:
+ *    F = m * a
+ * Where 'F' is the force, 'm' is the mass and 'a' is the acceleration of the
+ * body. Therefore, to get the acceleration from the force:
+ *    a = F / m
+ *
+ * TODO: Continue explanation and add function for handling attractions.
+ */
+
+static void move_bodies(void) {
+    for (Body* body = bodies; body != NULL; body = body->next) {
+        body->x += body->vel_x;
+        body->y += body->vel_y;
+    }
+}
+
 static void render_grid(SDL_Renderer* rend) {
     for (Body* body = bodies; body != NULL; body = body->next) {
         assert(body->type < LENGTH(color_palette));
@@ -280,6 +304,9 @@ int main(void) {
         /* DELME: Testing */
         draw_circle(sdl_renderer, 50, 100, 40, 0xFF0000);
         draw_circle_filled(sdl_renderer, 140, 100, 40, 0xFF0000);
+
+        /* Apply the velocity of each body */
+        move_bodies();
 
         /* Render the valid bodies */
         render_grid(sdl_renderer);
