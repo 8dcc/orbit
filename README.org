@@ -1,4 +1,4 @@
-#+title: Title
+#+title: Orbit
 #+options: toc:nil
 #+startup: showeverything
 #+author: 8dcc
@@ -8,19 +8,21 @@
 *TODO*: Change output.out in Makefile
 #+end_comment
 
-*Short description.*
+*Simulate orbits.*
 
 #+TOC: headlines 2
 
 * Description
 
-Long description.
+WIP.
 
 * Building
 
 #+begin_src console
-$ git clone https://github.com/8dcc/project-name
-$ cd project-name
+$ git clone https://github.com/8dcc/orbit
+$ cd orbit
 $ make
 ...
+
+$ ./orbit
 #+end_src
