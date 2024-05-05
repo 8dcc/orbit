@@ -67,62 +67,81 @@ static inline void set_render_color(SDL_Renderer* rend, uint32_t col) {
     SDL_SetRenderDrawColor(rend, r, g, b, a);
 }
 
-static void draw_circle_filled(SDL_Renderer* rend, int x, int y, int r,
-                               uint32_t col) {
-    const int diameter = r * 2;
+/* Credits for both circle functions: @Gumichan01
+ * https://gist.github.com/Gumichan01/332c26f6197a432db91cc4327fcabb1c */
+static int draw_circle(SDL_Renderer* rend, int x, int y, int r, uint32_t col) {
+    int dx     = 0;
+    int dy     = r;
+    int d      = r - 1;
+    int status = 0;
 
     set_render_color(rend, col);
 
-    /* Will iterate from (y-r) to (y+r) */
-    for (int cur_y = 0; cur_y < diameter; cur_y++) {
-        int dy = r - cur_y;
+    while (dy >= dx) {
+        status += SDL_RenderDrawPoint(rend, x + dx, y + dy);
+        status += SDL_RenderDrawPoint(rend, x + dy, y + dx);
+        status += SDL_RenderDrawPoint(rend, x - dx, y + dy);
+        status += SDL_RenderDrawPoint(rend, x - dy, y + dx);
+        status += SDL_RenderDrawPoint(rend, x + dx, y - dy);
+        status += SDL_RenderDrawPoint(rend, x + dy, y - dx);
+        status += SDL_RenderDrawPoint(rend, x - dx, y - dy);
+        status += SDL_RenderDrawPoint(rend, x - dy, y - dx);
 
-        /* Will iterate from (x-r) to (x+r) */
-        for (int cur_x = 0; cur_x < diameter; cur_x++) {
-            int dx = r - cur_x;
+        if (status < 0) {
+            status = -1;
+            break;
+        }
 
-            /* Draw point if: dx^2 + dy^2 <= r^2 */
-            if ((dx * dx + dy * dy) < (r * r))
-                SDL_RenderDrawPoint(rend, x + dx, y + dy);
+        if (d >= 2 * dx) {
+            d -= 2 * dx + 1;
+            dx += 1;
+        } else if (d < 2 * (r - dy)) {
+            d += 2 * dy - 1;
+            dy -= 1;
+        } else {
+            d += 2 * (dy - dx - 1);
+            dy -= 1;
+            dx += 1;
         }
     }
+
+    return status;
 }
 
-/* See: https://en.wikipedia.org/wiki/Midpoint_circle_algorithm */
-static void draw_circle(SDL_Renderer* rend, int x, int y, int r, uint32_t col) {
-    const int diameter = r * 2;
-
-    int cur_x = r - 1;
-    int cur_y = 0;
-    int tx    = 1;
-    int ty    = 1;
-    int error = tx - diameter;
+static int draw_circle_filled(SDL_Renderer* rend, int x, int y, int r,
+                              uint32_t col) {
+    int dx     = 0;
+    int dy     = r;
+    int d      = r - 1;
+    int status = 0;
 
     set_render_color(rend, col);
 
-    while (cur_x >= cur_y) {
-        /* Each of the following renders an octant of the circle */
-        SDL_RenderDrawPoint(rend, x + cur_x, y - cur_y);
-        SDL_RenderDrawPoint(rend, x + cur_x, y + cur_y);
-        SDL_RenderDrawPoint(rend, x - cur_x, y - cur_y);
-        SDL_RenderDrawPoint(rend, x - cur_x, y + cur_y);
-        SDL_RenderDrawPoint(rend, x + cur_y, y - cur_x);
-        SDL_RenderDrawPoint(rend, x + cur_y, y + cur_x);
-        SDL_RenderDrawPoint(rend, x - cur_y, y - cur_x);
-        SDL_RenderDrawPoint(rend, x - cur_y, y + cur_x);
+    while (dy >= dx) {
+        status += SDL_RenderDrawLine(rend, x - dy, y + dx, x + dy, y + dx);
+        status += SDL_RenderDrawLine(rend, x - dx, y + dy, x + dx, y + dy);
+        status += SDL_RenderDrawLine(rend, x - dx, y - dy, x + dx, y - dy);
+        status += SDL_RenderDrawLine(rend, x - dy, y - dx, x + dy, y - dx);
 
-        if (error <= 0) {
-            cur_y++;
-            error += ty;
-            ty += 2;
+        if (status < 0) {
+            status = -1;
+            break;
         }
 
-        if (error > 0) {
-            cur_x--;
-            tx += 2;
-            error += tx - diameter;
+        if (d >= 2 * dx) {
+            d -= 2 * dx + 1;
+            dx += 1;
+        } else if (d < 2 * (r - dy)) {
+            d += 2 * dy - 1;
+            dy -= 1;
+        } else {
+            d += 2 * (dy - dx - 1);
+            dy -= 1;
+            dx += 1;
         }
     }
+
+    return status;
 }
 
 /*----------------------------------------------------------------------------*/
