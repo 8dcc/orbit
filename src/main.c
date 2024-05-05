@@ -1,12 +1,49 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <assert.h>
 #include <stdio.h>
 #include <SDL2/SDL.h>
 
-#define WINDOW_W 640
-#define WINDOW_H 480
-#define FPS      60
+#define GRID_W 640
+#define GRID_H 480
+#define FPS    60
+
+#define LENGTH(ARR) (sizeof(ARR) / sizeof((ARR)[0]))
+
+/*----------------------------------------------------------------------------*/
+/* Enums and structs */
+
+typedef enum EBodyType {
+    BODY_STATIC  = 0, /* It can't move */
+    BODY_DYNAMIC = 1, /* It can move */
+} EBodyType;
+
+typedef struct Cell {
+    /* Each cell in the grid can contain a body. */
+    bool has_body;
+
+    /* The body type determines whether it can move or not. The color will
+     * change depending on the type when rendering. */
+    EBodyType type;
+
+    /* The mass will determine the attraction force of the body, and it's size
+     * when rendering. */
+    int mass;
+} Cell;
+
+/*----------------------------------------------------------------------------*/
+/* Globals */
+
+static Cell grid[GRID_H * GRID_W];
+
+static uint32_t color_palette[] = {
+    [BODY_STATIC]  = 0x555555,
+    [BODY_DYNAMIC] = 0xCCCCCC,
+};
+
+/*----------------------------------------------------------------------------*/
+/* Misc utils */
 
 static void die(const char* fmt, ...) {
     va_list va;
@@ -19,6 +56,9 @@ static void die(const char* fmt, ...) {
     exit(1);
 }
 
+/*----------------------------------------------------------------------------*/
+/* SDL utils */
+
 static inline void set_render_color(SDL_Renderer* rend, uint32_t col) {
     const uint8_t r = (col >> 16) & 0xFF;
     const uint8_t g = (col >> 8) & 0xFF;
@@ -27,14 +67,98 @@ static inline void set_render_color(SDL_Renderer* rend, uint32_t col) {
     SDL_SetRenderDrawColor(rend, r, g, b, a);
 }
 
+static void draw_circle_filled(SDL_Renderer* rend, int x, int y, int r,
+                               uint32_t col) {
+    const int diameter = r * 2;
+
+    set_render_color(rend, col);
+
+    /* Will iterate from (y-r) to (y+r) */
+    for (int cur_y = 0; cur_y < diameter; cur_y++) {
+        int dy = r - cur_y;
+
+        /* Will iterate from (x-r) to (x+r) */
+        for (int cur_x = 0; cur_x < diameter; cur_x++) {
+            int dx = r - cur_x;
+
+            /* Draw point if: dx^2 + dy^2 <= r^2 */
+            if ((dx * dx + dy * dy) < (r * r))
+                SDL_RenderDrawPoint(rend, x + dx, y + dy);
+        }
+    }
+}
+
+/* See: https://en.wikipedia.org/wiki/Midpoint_circle_algorithm */
+static void draw_circle(SDL_Renderer* rend, int x, int y, int r, uint32_t col) {
+    const int diameter = r * 2;
+
+    int cur_x = r - 1;
+    int cur_y = 0;
+    int tx    = 1;
+    int ty    = 1;
+    int error = tx - diameter;
+
+    set_render_color(rend, col);
+
+    while (cur_x >= cur_y) {
+        /* Each of the following renders an octant of the circle */
+        SDL_RenderDrawPoint(rend, x + cur_x, y - cur_y);
+        SDL_RenderDrawPoint(rend, x + cur_x, y + cur_y);
+        SDL_RenderDrawPoint(rend, x - cur_x, y - cur_y);
+        SDL_RenderDrawPoint(rend, x - cur_x, y + cur_y);
+        SDL_RenderDrawPoint(rend, x + cur_y, y - cur_x);
+        SDL_RenderDrawPoint(rend, x + cur_y, y + cur_x);
+        SDL_RenderDrawPoint(rend, x - cur_y, y - cur_x);
+        SDL_RenderDrawPoint(rend, x - cur_y, y + cur_x);
+
+        if (error <= 0) {
+            cur_y++;
+            error += ty;
+            ty += 2;
+        }
+
+        if (error > 0) {
+            cur_x--;
+            tx += 2;
+            error += tx - diameter;
+        }
+    }
+}
+
+/*----------------------------------------------------------------------------*/
+/* Orbit functions */
+
+static void add_body(int x, int y, EBodyType type) {
+    grid[GRID_W * y + x].has_body = true;
+    grid[GRID_W * y + x].type     = type;
+    grid[GRID_W * y + x].mass     = 4;
+}
+
+static void render_grid(SDL_Renderer* rend) {
+    for (int y = 0; y < GRID_H; y++) {
+        for (int x = 0; x < GRID_W; x++) {
+            Cell body = grid[GRID_W * y + x];
+            if (!body.has_body)
+                continue;
+
+            assert(body.type < LENGTH(color_palette));
+            uint32_t color = color_palette[body.type];
+
+            draw_circle(rend, x, y, body.mass, color);
+        }
+    }
+}
+
+/*----------------------------------------------------------------------------*/
+
 int main(void) {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
         die("Unable to start SDL.");
 
     /* Create SDL window */
     SDL_Window* sdl_window =
-      SDL_CreateWindow("Langton's ant", SDL_WINDOWPOS_CENTERED,
-                       SDL_WINDOWPOS_CENTERED, WINDOW_W, WINDOW_H, 0);
+      SDL_CreateWindow("Orbit", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                       GRID_W, GRID_H, 0);
     if (!sdl_window)
         die("Error creating SDL window.");
 
@@ -65,18 +189,38 @@ int main(void) {
                             break;
                         default:
                             break;
-                    }
-                    break;
+                    }      /* End scancode switch */
+                    break; /* End SDL_KEYDOWN case */
+                case SDL_MOUSEBUTTONUP: {
+                    const int mouse_x = sdl_event.motion.x;
+                    const int mouse_y = sdl_event.motion.y;
+
+                    switch (sdl_event.button.button) {
+                        case SDL_BUTTON_LEFT:
+                            add_body(mouse_x, mouse_y, BODY_DYNAMIC);
+                            break;
+                        case SDL_BUTTON_RIGHT:
+                            add_body(mouse_x, mouse_y, BODY_STATIC);
+                            break;
+                        default:
+                            break;
+                    }    /* End mouse button switch */
+                } break; /* End SDL_MOUSEBUTTON case */
                 default:
                     break;
-            }
-        }
+            } /* End event.type switch */
+        }     /* End PollEvent while */
 
         /* Clear window */
         set_render_color(sdl_renderer, 0x000000);
         SDL_RenderClear(sdl_renderer);
 
-        /* TODO */
+        /* DELME: Testing */
+        draw_circle(sdl_renderer, 100, 100, 40, 0xFF0000);
+        draw_circle_filled(sdl_renderer, 200, 100, 40, 0xFF0000);
+
+        /* Render the valid bodies */
+        render_grid(sdl_renderer);
 
         /* Send to renderer and delay depending on FPS */
         SDL_RenderPresent(sdl_renderer);
