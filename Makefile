@@ -1,6 +1,6 @@
 
 CC=gcc
-CFLAGS=-Wall -Wextra
+CFLAGS=-Wall -Wextra -ggdb3
 LDFLAGS=$(shell sdl2-config --cflags --libs) -lm
 
 OBJ_FILES=main.c.o

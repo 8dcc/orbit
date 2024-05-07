@@ -318,6 +318,16 @@ static void render_grid(SDL_Renderer* rend) {
     }
 }
 
+static void free_bodies(void) {
+    Body* body = bodies;
+    while (body != NULL) {
+        Body* aux = body->next;
+        free(body);
+        body = aux;
+    }
+    bodies = NULL;
+}
+
 /*----------------------------------------------------------------------------*/
 
 int main(void) {
@@ -341,7 +351,8 @@ int main(void) {
     }
 
     /* Main loop */
-    bool running = true;
+    bool clear_bodies = false;
+    bool running      = true;
     while (running) {
         /* Parse SDL events */
         SDL_Event sdl_event;
@@ -355,6 +366,9 @@ int main(void) {
                         case SDL_SCANCODE_ESCAPE:
                         case SDL_SCANCODE_Q:
                             running = false;
+                            break;
+                        case SDL_SCANCODE_C:
+                            clear_bodies = true;
                             break;
                         case SDL_SCANCODE_1:
                             current_mass -= CURRENT_MASS_STEP;
@@ -403,6 +417,13 @@ int main(void) {
             } /* End event.type switch */
         }     /* End PollEvent while */
 
+        /* If we pressed 'C' */
+        if (clear_bodies) {
+            free_bodies();
+            clear_bodies = false;
+            continue;
+        }
+
         /* Make sure the global variables are within bounds */
         if (current_mass < 1.f)
             current_mass = 1.f;
@@ -426,6 +447,9 @@ int main(void) {
         SDL_RenderPresent(sdl_renderer);
         SDL_Delay(1000 / FPS);
     }
+
+    /* Free our linked list of bodies */
+    free_bodies();
 
     SDL_DestroyRenderer(sdl_renderer);
     SDL_DestroyWindow(sdl_window);
