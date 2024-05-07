@@ -11,6 +11,8 @@
 #define GRID_H 480
 #define FPS    60
 
+#define CURRENT_MASS_STEP   2.f
+
 #define LENGTH(ARR) (sizeof(ARR) / sizeof((ARR)[0]))
 
 /*----------------------------------------------------------------------------*/
@@ -43,8 +45,13 @@ typedef struct Body {
 /*----------------------------------------------------------------------------*/
 /* Globals */
 
+/* Linked list of Body structures */
 static Body* bodies = NULL;
 
+/* Current mass for new bodies, selected by the user with MWheel */
+static float current_mass = 7.f;
+
+/* Color palette for different types of bodies */
 static uint32_t color_palette[] = {
     [BODY_STATIC]  = 0x555555,
     [BODY_DYNAMIC] = 0xCCCCCC,
@@ -169,10 +176,11 @@ static Body* get_last_body(void) {
 }
 
 static void add_body(float x, float y, EBodyType type) {
-    /* Allocate new Body */
+    /* Allocate new Body. The current mass is changed by the user, see comment
+     * in global variable. */
     Body* new_body  = malloc(sizeof(Body));
     new_body->type  = type;
-    new_body->mass  = 7.f;
+    new_body->mass  = current_mass;
     new_body->x     = x;
     new_body->y     = y;
     new_body->vel_x = 0.f;
@@ -246,15 +254,16 @@ static void apply_acceleration(Body* a, Body* b) {
     float acc_x = acc * cosf(rad_ang);
     float acc_y = acc * sinf(rad_ang);
 
-    /* If the bodies are too close, bounce back */
     if (a_width + b_width >= distance) {
-        acc_x *= -1;
-        acc_y *= -1;
+        /* If the bodies are too close, bounce back */
+        a->vel_x *= -1;
+        a->vel_y *= -1;
+    } else {
+        /* Otherwise, we can get the bodies closer by updating their
+         * velocities. */
+        a->vel_x += acc_x;
+        a->vel_y += acc_y;
     }
-
-    /* Finally, we can update the body's velocity. */
-    a->vel_x += acc_x;
-    a->vel_y += acc_y;
 }
 
 /* Calculate and apply gravity accelerations to all bodies relative to all
@@ -361,6 +370,17 @@ int main(void) {
                             break;
                     }    /* End mouse button switch */
                 } break; /* End SDL_MOUSEBUTTON case */
+                case SDL_MOUSEWHEEL:
+                    if (sdl_event.wheel.type != SDL_MOUSEWHEEL)
+                        break;
+
+                    /* Increase or decrease current mass with mouse wheel */
+                    if (sdl_event.wheel.y > 0)
+                        current_mass += CURRENT_MASS_STEP;
+                    else
+                        current_mass -= CURRENT_MASS_STEP;
+
+                    break; /* End SDL_MOUSEWHEEL case */
                 default:
                     break;
             } /* End event.type switch */
