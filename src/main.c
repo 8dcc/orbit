@@ -12,6 +12,7 @@
 #define FPS    60
 
 #define CURRENT_MASS_STEP   2.f
+#define CURRENT_BOUNCE_STEP 0.5f
 
 #define LENGTH(ARR) (sizeof(ARR) / sizeof((ARR)[0]))
 
@@ -48,8 +49,11 @@ typedef struct Body {
 /* Linked list of Body structures */
 static Body* bodies = NULL;
 
-/* Current mass for new bodies, selected by the user with MWheel */
+/* Current mass for new bodies. Controlled with MWheel or 1/2. */
 static float current_mass = 7.f;
+
+/* Current bounce power when bodies collide. Controlled with 3/4. */
+static float current_bounce = 1.f;
 
 /* Color palette for different types of bodies */
 static uint32_t color_palette[] = {
@@ -255,9 +259,10 @@ static void apply_acceleration(Body* a, Body* b) {
     float acc_y = acc * sinf(rad_ang);
 
     if (a_width + b_width >= distance) {
-        /* If the bodies are too close, bounce back */
-        a->vel_x *= -1;
-        a->vel_y *= -1;
+        /* If the bodies are too close, bounce back. The force is controlled
+         * with 3/4 keys. */
+        a->vel_x -= acc_x * current_bounce;
+        a->vel_y -= acc_y * current_bounce;
     } else {
         /* Otherwise, we can get the bodies closer by updating their
          * velocities. */
@@ -351,6 +356,18 @@ int main(void) {
                         case SDL_SCANCODE_Q:
                             running = false;
                             break;
+                        case SDL_SCANCODE_1:
+                            current_mass -= CURRENT_MASS_STEP;
+                            break;
+                        case SDL_SCANCODE_2:
+                            current_mass += CURRENT_MASS_STEP;
+                            break;
+                        case SDL_SCANCODE_3:
+                            current_bounce -= CURRENT_BOUNCE_STEP;
+                            break;
+                        case SDL_SCANCODE_4:
+                            current_bounce += CURRENT_BOUNCE_STEP;
+                            break;
                         default:
                             break;
                     }      /* End scancode switch */
@@ -385,6 +402,12 @@ int main(void) {
                     break;
             } /* End event.type switch */
         }     /* End PollEvent while */
+
+        /* Make sure the global variables are within bounds */
+        if (current_mass < 1.f)
+            current_mass = 1.f;
+        if (current_bounce < 0.f)
+            current_bounce = 0.f;
 
         /* Clear window */
         set_render_color(sdl_renderer, 0x000000);
