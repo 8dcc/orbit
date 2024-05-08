@@ -3,18 +3,16 @@
 #+startup: showeverything
 #+author: 8dcc
 
-#+begin_comment
-*TODO*: Change project-name and title
-*TODO*: Change output.out in Makefile
-#+end_comment
-
 *Simulate orbits.*
 
 #+TOC: headlines 2
 
 * Description
 
-WIP.
+Simulate attraction using 2D circles.
+
+The "bouncing" when two objects collide is not realistic, because I suck at math
+and I couldn't understand what I searched. If you want, feel free to make a PR.
 
 * Building
 
