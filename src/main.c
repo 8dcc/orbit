@@ -293,6 +293,10 @@ static void apply_accelerations(void) {
 
 static void move_bodies(void) {
     for (Body* body = bodies; body != NULL; body = body->next) {
+        /* Static bodies don't move */
+        if (body->type == BODY_STATIC)
+            continue;
+
         body->x += body->vel_x;
         body->y += body->vel_y;
     }
