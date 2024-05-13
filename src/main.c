@@ -214,9 +214,39 @@ static void apply_acceleration(Body* a, Body* b) {
      * formed by the X and Y differences between 'a' and 'b'.
      *    d = sqrt((bx - ax)^2 + (by - ay)^2)
      */
-    const float dx = b->x - a->x;
-    const float dy = b->y - a->y;
+    float dx       = b->x - a->x;
+    float dy       = b->y - a->y;
     float distance = sqrtf(dx * dx + dy * dy);
+
+    /*
+     * If the distance between the two bodies is smaller than their radius
+     * combined, they are colliding.
+     */
+    if (a_width + b_width >= distance) {
+        /* Calculate the dot product of the velocity.
+         * TODO: Improve explanation.
+         * TODO: Add LaTeX with formulas. */
+        float nx          = dx / distance;
+        float ny          = dy / distance;
+        float dot_product = a->vel_x * nx + a->vel_y * ny;
+
+        /* Normalize the distance vector */
+        float norm_x = dot_product * nx;
+        float norm_y = dot_product * ny;
+
+        /* Calculate the perpendicular normalized vector to the velocity */
+        float perpendicular_x = a->vel_x - norm_x;
+        float perpendicular_y = a->vel_y - norm_y;
+
+        /* TODO: Improve explanation */
+        a->vel_x = perpendicular_x - norm_x;
+        a->vel_y = perpendicular_y - norm_y;
+
+        /* TODO: Velocity of B should be accounted. We would need to call this
+         * function with all possible unique body pairs in `bodies' and change
+         * both A and B speeds. */
+        return;
+    }
 
     /*
      * The gravitational force of each body is calculated with this formula:
@@ -258,17 +288,12 @@ static void apply_acceleration(Body* a, Body* b) {
     float acc_x = acc * cosf(rad_ang);
     float acc_y = acc * sinf(rad_ang);
 
-    if (a_width + b_width >= distance) {
-        /* If the bodies are too close, bounce back. The force is controlled
-         * with 3/4 keys. */
-        a->vel_x -= acc_x * current_bounce;
-        a->vel_y -= acc_y * current_bounce;
-    } else {
-        /* Otherwise, we can get the bodies closer by updating their
-         * velocities. */
-        a->vel_x += acc_x;
-        a->vel_y += acc_y;
-    }
+    /*
+     * Since we know the bodies are not colliding, we can get the bodies closer
+     * by updating their velocities.
+     */
+    a->vel_x += acc_x;
+    a->vel_y += acc_y;
 }
 
 /* Calculate and apply gravity accelerations to all bodies relative to all
