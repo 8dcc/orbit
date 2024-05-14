@@ -1,0 +1,98 @@
+\documentclass{amsart}
+
+\title{Elastic collisions}
+\author{8dcc}
+
+% Various math utilities, like align*
+\usepackage{amsmath}
+
+% Graphs
+\usepackage{tikz}
+
+% Hyperlinks
+\usepackage[hidelinks]{hyperref}
+
+% Change the spacing between paragraphs
+\setlength{\parskip}{\baselineskip}
+
+% Remove author and extra info from the headers
+\pagestyle{plain}
+
+% New environment adding spacing for tikz pictures
+\newenvironment{tikzpicturecenter}
+{\begin{center}\begin{tikzpicture}}
+{\end{tikzpicture}\end{center}}
+
+\begin{document}
+\maketitle
+
+The distance between two bodies is the hypotenuse of a right triangle whose two
+cathetus are the difference between the \(x\) and \(y\) coordinates of the
+centers of the two bodies.
+
+% NOTE: Environment defined above
+\begin{tikzpicturecenter}
+  \draw[thin, gray, dotted] (0,0) grid (8,7);
+  \draw[gray] (2,5) circle (1.2) node[above right]{A};
+  \draw[gray] (6,2) circle (1.5) node[above right]{B};
+  \draw[thick] (2,5) -- (6,2);
+  \draw[thick, blue] (2,2) -- (2,5) node[pos=0.5, left]{\(d_y\)};
+  \draw[thick, red] (2,2) -- (6,2) node[pos=0.5, below]{\(d_x\)};
+\end{tikzpicturecenter}
+
+\begin{align*}
+  \text{dx}       &= B_x - A_x            \\
+  \text{dy}       &= B_y - A_y            \\
+  \text{distance} &= \sqrt{\text{dx}^2 + \text{dx}^2}
+\end{align*}
+
+If the sum of the radius of \(A\) and \(B\) is greater or equal than the
+distance between the centers, they are colliding.
+
+\iffalse
+
+The gravitational force of each body is calculated with the following formula.
+
+\begin{displaymath}
+  F = G \frac{m_1m_2}{r^2}
+\end{displaymath}
+
+Where \(G\) is the gravitational constant, \(m_1\) and \(m_2\) are the mass of
+each body, and \(r\) is the distance between the objects.
+
+The effect of a force is to accelerate the body. The relationship is the
+following.
+
+\begin{displaymath}
+  F = m a
+\end{displaymath}
+
+Where \(F\) is the force, \(m\) is the mass and \(a\) is the acceleration of
+the body. Therefore, to get the acceleration from the force, we can do the
+following.
+
+\begin{displaymath}
+  a = \frac{F}{m}
+\end{displaymath}
+
+The force has a direction. It acts towards the direction of the line joining
+the centres of the two bodies. We can get the X and Y coordinates of the
+acceleration with some trigonometry.
+
+\begin{align*}
+  a_x &= a \cos(\theta) \\
+  a_y &= a \sin(\theta) \\
+\end{align*}
+
+Where \(a_x\) and \(a_y\) are the X and Y accelerations, \(a\) is the
+acceleration, and \(\theta\) is the angle that the line joining the centers make
+with the horizontal.
+
+\fi
+
+\begin{thebibliography}{9}
+\bibitem{elastic}
+  \url{https://en.wikipedia.org/wiki/Elastic_collision}
+\end{thebibliography}
+
+\end{document}
