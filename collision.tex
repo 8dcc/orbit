@@ -9,6 +9,9 @@
 % Graphs
 \usepackage{tikz}
 
+% Code highlighting
+\usepackage{listings}
+
 % Hyperlinks
 \usepackage[hidelinks]{hyperref}
 
@@ -26,9 +29,18 @@
 \begin{document}
 \maketitle
 
-The distance between two bodies is the hypotenuse of a right triangle whose two
-cathetus are the difference between the \(x\) and \(y\) coordinates of the
-centers of the two bodies.
+First, we are going to simulate an elastic collision between two bodies. The
+body \(A\) will be moving towards the body \(B\) but this one will be static.
+
+Since it's an elastic collision, the kinetic energy will remain the same after
+the impact. We will ignore the masses, and only are about the impact and the
+reflection itself.
+
+\section{Distance between the bodies}
+
+The distance between two bodies can be calculated with the hypotenuse of a right
+triangle whose two cathetus are the difference between the \(x\) and \(y\)
+coordinates of each center.
 
 % NOTE: Environment defined above
 \begin{tikzpicturecenter}
@@ -40,16 +52,32 @@ centers of the two bodies.
   \draw[thick, red] (2,2) -- (6,2) node[pos=0.5, below]{\(d_x\)};
 \end{tikzpicturecenter}
 
-\begin{align*}
-  \text{dx}       &= B_x - A_x            \\
-  \text{dy}       &= B_y - A_y            \\
-  \text{distance} &= \sqrt{\text{dx}^2 + \text{dx}^2}
-\end{align*}
+\begin{displaymath}
+  d = \sqrt{(B_x - A_x)^2 + (B_y - A_y)^2}
+\end{displaymath}
+
+\newpage
+
+In C code:
+
+\begin{lstlisting}[language=C]
+  float dx = b.x - a.x;
+  float dy = b.y - a.y;
+  float distance = sqrtf(dx * dx + dy * dy);
+\end{lstlisting}
+
+\section{Bouncing off another static body}
 
 If the sum of the radius of \(A\) and \(B\) is greater or equal than the
-distance between the centers, they are colliding.
+distance between the centers, they are colliding. Since this is an elastic
+collision, and since the second body is static, the velocity of the first body
+will remain the same, but the direction will change.
+
+% TODO
 
 \iffalse
+\section{Gravitational force}
+% TODO: Last section
 
 The gravitational force of each body is calculated with the following formula.
 
