@@ -16,7 +16,7 @@
 \usepackage[hidelinks]{hyperref}
 
 % Change the spacing between paragraphs
-\setlength{\parskip}{\baselineskip}
+%\setlength{\parskip}{\baselineskip}
 
 % Remove author and extra info from the headers
 \pagestyle{plain}
@@ -29,12 +29,16 @@
 \begin{document}
 \maketitle
 
-First, we are going to simulate an elastic collision between two bodies. The
-body \(A\) will be moving towards the body \(B\) but this one will be static.
+This document will try to explain the math behind the collision simulations. The
+simulations will progresively get more complex. For the simplest case, we are
+going to simulate an elastic collision between a body \(A\) and a immobile body
+\(B\).
 
 Since it's an elastic collision, the kinetic energy will remain the same after
-the impact. We will ignore the masses, and only are about the impact and the
+the impact. For now, we will ignore the masses and focus on the impact and the
 reflection itself.
+
+\newpage
 
 \section{Distance between the bodies}
 
@@ -44,19 +48,30 @@ coordinates of each center.
 
 % NOTE: Environment defined above
 \begin{tikzpicturecenter}
+  % Coordinates of circles
+  \coordinate (a) at (2,5);
+  \coordinate (b) at (6,2);
+
+  % Grid
   \draw[thin, gray, dotted] (0,0) grid (8,7);
-  \draw[gray] (2,5) circle (1.2) node[above right]{A};
-  \draw[gray] (6,2) circle (1.5) node[above right]{B};
-  \draw[thick] (2,5) -- (6,2);
-  \draw[thick, blue] (2,2) -- (2,5) node[pos=0.5, left]{\(d_y\)};
-  \draw[thick, red] (2,2) -- (6,2) node[pos=0.5, below]{\(d_x\)};
+
+  % Circles
+  \draw (a) circle (1.2);
+  \draw (b) circle (1.5);
+
+  % Lines
+  \draw[thick] (a) -- (b) node[pos=0.5, above right]{\(d\)};
+  \draw[thick, blue] (2,2) -- (a) node[pos=0.5, left]{\(\Delta_y\)};
+  \draw[thick, red] (2,2) -- (b) node[pos=0.5, below]{\(\Delta_x\)};
+
+  % Points in centers
+  \filldraw (a) circle (1pt) node[above right]{\(A\)};
+  \filldraw (b) circle (1pt) node[above right]{\(B\)};
 \end{tikzpicturecenter}
 
 \begin{displaymath}
   d = \sqrt{(B_x - A_x)^2 + (B_y - A_y)^2}
 \end{displaymath}
-
-\newpage
 
 In C code:
 
@@ -66,18 +81,124 @@ In C code:
   float distance = sqrtf(dx * dx + dy * dy);
 \end{lstlisting}
 
-\section{Bouncing off another static body}
+\newpage
+
+\section{Bouncing off another immobile body}
 
 If the sum of the radius of \(A\) and \(B\) is greater or equal than the
 distance between the centers, they are colliding. Since this is an elastic
-collision, and since the second body is static, the velocity of the first body
-will remain the same, but the direction will change.
+collision, and since the second body is immobile, the velocity of the first body
+will remain the same, but its direction will change.
 
-% TODO
+\subsection{Normalization}
 
-\iffalse
-\section{Gravitational force}
+By normalizing a vector, we can determine its direction. To get the normalized
+or unitary vector, we can use this formula:
+
+\begin{displaymath}
+  \hat{u} = \frac{u}{\|u\|}
+\end{displaymath}
+
+Where \(u\) is the vector, \(\hat{u}\) is the normalized vector, and \(\|u\|\)
+is the norm or magnitude of the vector.
+
+We normalize our impact vector (the line between the centers) by dividing
+\(\Delta_x\) and \(\Delta_y\) by its length, which is the total distance we
+calculated earlier. This normalized vector will be used to determine the
+direction of the impact.
+
+\begin{align*}
+  n_x &= \frac{\Delta_x}{d} \\
+  n_y &= \frac{\Delta_y}{d}
+\end{align*}
+
+\subsection{Dot product}
+
+We need to determine the magnitude of the velocity of \(A\) that is going
+torwards the center of \(B\). We can get a scalar that represents this magnitude
+with the dot product of the velocity and the normalized vector we just
+calculated.
+
+The dot product or scalar product takes two vectors and returns a scalar that
+represents the projection of one vector onto the other. In simpler terms, it's a
+way of quantifying how much of vector \(A\) is aligned with vector \(B\).
+
+If the dot product is positive, \(A\) has a component in the same direction as
+\(B\). If the dot product is zero, \(A\) and \(B\) are perpendicular. If it's
+negative, \(A\) has a component in the opposite direction of \(B\).
+
+\begin{tikzpicturecenter}
+  \draw[thin, gray, dotted] (0,0) grid (13,4);
+
+  \draw[->] (1,1) -- (2,3) node[above]{A};
+  \draw[->] (1,1) -- (3,1.5) node[above]{B};
+  \draw (2,0.5) node{\(A \cdot B > 0\)};
+
+  \draw[->] (6,1) -- (4.5,2.5) node[above]{A};
+  \draw[->] (6,1) -- (7.5,2.5) node[above]{B};
+  \draw (6,0.5) node{\(A \cdot B = 0\)};
+
+  \draw[->] (10,1) -- (9,3) node[above]{A};
+  \draw[->] (10,1) -- (12,1) node[above]{B};
+  \draw (10,0.5) node{\(A \cdot B < 0\)};
+\end{tikzpicturecenter}
+
+If both vectors are normalized, the returned value will always be in the range
+\([-1,1]\).
+
+For example, if \(V\) represents the velocity vector of body \(B\), and \(n\)
+represents the normalized collision vector we calculated earlier:
+
+\begin{tikzpicturecenter}
+  % Coordinates
+  \coordinate (a) at (2,3);
+  \coordinate (b) at (5,2);
+
+  % Grid
+  \draw[thin, gray, dotted] (0,0) grid (7,5);
+
+  % Circles. The radius sum the distance between the centers (~3.16)
+  \draw (a) circle (1.5);
+  \draw (b) circle (1.65);
+
+  % Red and blue arrows
+  \draw[->, red] (b) -- (4,2.33) node[pos=0.5, below]{\(n\)};
+  \draw[->, blue] (b) -- (4.5,4.5) node[pos=0.5, right]{\(V\)};
+
+  % Points in centers
+  \filldraw (a) circle (1pt) node[above right]{\(A\)};
+  \filldraw (b) circle (1pt) node[below right]{\(B\)};
+\end{tikzpicturecenter}
+
+Then the dot product would be calculated by:
+
+\begin{displaymath}
+  V \cdot n = V_x n_x + V_y n_y
+\end{displaymath}
+
+The dot product has a direct relationship with the angle between the two
+vectors, since:
+
+\begin{displaymath}
+  a \cdot b = \|a\| \|b\| \cos \theta
+\end{displaymath}
+
+% TODO: Calculate angle from dot product
+
+In C code:
+
+\begin{lstlisting}[language=C]
+  // Normalize collision vector
+  float nx = dx / distance;
+  float ny = dy / distance;
+  float dot_product = a.vx * nx + a.vy * ny;
+  // TODO
+\end{lstlisting}
+
+\newpage
+
 % TODO: Last section
+\section{Gravitational force}
 
 The gravitational force of each body is calculated with the following formula.
 
@@ -116,11 +237,19 @@ Where \(a_x\) and \(a_y\) are the X and Y accelerations, \(a\) is the
 acceleration, and \(\theta\) is the angle that the line joining the centers make
 with the horizontal.
 
-\fi
+\newpage
 
 \begin{thebibliography}{9}
 \bibitem{elastic}
   \url{https://en.wikipedia.org/wiki/Elastic_collision}
+\bibitem{unitvector}
+  \url{https://en.wikipedia.org/wiki/Unit_vector}
+\bibitem{scalar}
+  \url{https://en.wikipedia.org/wiki/Scalar_(mathematics)}
+\bibitem{dotproduct}
+  \url{https://en.wikipedia.org/wiki/Dot_product}
+\bibitem{godot}
+  \url{https://docs.godotengine.org/en/stable/tutorials/math/vector_math.html}
 \end{thebibliography}
 
 \end{document}
