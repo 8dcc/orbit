@@ -30,9 +30,9 @@
 \maketitle
 
 This document will try to explain the math behind the collision simulations. The
-simulations will progresively get more complex. For the simplest case, we are
-going to simulate an elastic collision between a body \(A\) and a immobile body
-\(B\).
+simulations will progressively get more complex. For the simplest case, we are
+going to simulate an elastic collision between a body $A$ and a immobile body
+$B$.
 
 Since it's an elastic collision, the kinetic energy will remain the same after
 the impact. For now, we will ignore the masses and focus on the impact and the
@@ -41,7 +41,7 @@ reflection itself.
 \section{Distance between the bodies}
 
 The distance between two bodies can be calculated with the hypotenuse of a right
-triangle whose two cathetus are the difference between the \(x\) and \(y\)
+triangle whose two cathetus are the difference between the $x$ and $y$
 coordinates of each center.
 
 % NOTE: Environment defined above
@@ -58,13 +58,13 @@ coordinates of each center.
   \draw (b) circle (1.5);
 
   % Lines
-  \draw[thick] (a) -- (b) node[pos=0.5, above right]{\(d\)};
-  \draw[thick, blue] (2,2) -- (a) node[pos=0.5, left]{\(\Delta_y\)};
-  \draw[thick, red] (2,2) -- (b) node[pos=0.5, below]{\(\Delta_x\)};
+  \draw[thick] (a) -- (b) node[pos=0.5, above right]{$d$};
+  \draw[thick, blue] (2,2) -- (a) node[pos=0.5, left]{$\Delta_y$};
+  \draw[thick, red] (2,2) -- (b) node[pos=0.5, below]{$\Delta_x$};
 
   % Points in centers
-  \filldraw (a) circle (1pt) node[above right]{\(A\)};
-  \filldraw (b) circle (1pt) node[above right]{\(B\)};
+  \filldraw (a) circle (1pt) node[above right]{$A$};
+  \filldraw (b) circle (1pt) node[above right]{$B$};
 \end{tikzpicturecenter}
 
 \begin{displaymath}
@@ -83,10 +83,10 @@ In C code:
 
 \section{Bouncing off another immobile body}
 
-If the sum of the radius of \(A\) and \(B\) is greater or equal than the
-distance between the centers, they are colliding. Since this is an elastic
-collision, and since the second body is immobile, the velocity of the first body
-will remain the same, but its direction will change.
+If the sum of the radius of $A$ and $B$ is greater or equal than the distance
+between the centers, they are colliding. Since this is an elastic collision, and
+since the second body is immobile, the velocity of the first body will remain
+the same, but its direction will change.
 
 \subsection{Normalization}
 
@@ -97,11 +97,11 @@ or unitary vector, we can use this formula:
   \hat{u} = \frac{u}{\|u\|}
 \end{displaymath}
 
-Where \(u\) is the vector, \(\hat{u}\) is the normalized vector, and \(\|u\|\)
-is the norm or magnitude of the vector.
+Where $u$ is the vector, $\hat{u}$ is the normalized vector, and $\|u\|$ is the
+norm or magnitude of the vector.
 
 We normalize our impact vector (the line between the centers) by dividing
-\(\Delta_x\) and \(\Delta_y\) by the length of the vector, which we calculated
+$\Delta_x$ and $\Delta_y$ by the length of the vector, which we calculated
 earlier. This normalized vector will be used to determine the direction of the
 impact.
 
@@ -112,17 +112,17 @@ impact.
 
 \subsection{Dot product}
 
-We need to determine the magnitude of the velocity of \(A\) that is going
-torwards the center of \(B\). We can get a scalar that represents this magnitude
-with the dot product.
+We need to determine the magnitude of the velocity of $A$ that is going towards
+the center of $B$. We can get a scalar that represents this magnitude with the
+dot product.
 
 The dot product or scalar product takes two vectors and returns a scalar that
 represents the projection of one vector onto the other. In simpler terms, it's a
-way of quantifying how aligned is vector \(A\) with vector \(B\).
+way of quantifying how aligned is vector $A$ with vector $B$.
 
-If the dot product is positive, \(A\) has a component in the same direction as
-\(B\). If the dot product is zero, \(A\) and \(B\) are perpendicular. If it's
-negative, \(A\) has a component in the opposite direction of \(B\).
+If the dot product is positive, $A$ has a component in the same direction as
+$B$. If the dot product is zero, $A$ and $B$ are perpendicular. If it's
+negative, $A$ has a component in the opposite direction of $B$.
 
 \begin{tikzpicturecenter}
   \draw[thin, gray, dotted] (0,0) grid (13,4);
@@ -130,25 +130,25 @@ negative, \(A\) has a component in the opposite direction of \(B\).
   \draw[<->] (2,3) -- (1,1) -- (3,1.5);
   \node at (2,3) [above] {A};
   \node at (3,1.5) [above] {B};
-  \node at (2,0.5) [draw, rectangle] {\(A \cdot B > 0\)};
+  \node at (2,0.5) [draw, rectangle] {$A \cdot B > 0$};
 
   \draw[<->] (4.5,2.5) -- (6,1) -- (7.5,2.5);
   \node at (4.5,2.5) [above] {A};
   \node at (7.5,2.5) [above] {B};
-  \node at (6,0.5) [draw, rectangle] {\(A \cdot B = 0\)};
+  \node at (6,0.5) [draw, rectangle] {$A \cdot B = 0$};
 
   \draw[<->] (12,1) -- (10,1) -- (9,3);
   \node at (9,3) [above] {A};
   \node at (12,1) [above] {B};
-  \node at (10,0.5) [draw, rectangle] {\(A \cdot B < 0\)};
+  \node at (10,0.5) [draw, rectangle] {$A \cdot B < 0$};
 \end{tikzpicturecenter}
 
 If both vectors are normalized, the returned value will always be in the range
-\([-1,1]\).
+$[-1,1]$.
 
 \newpage
 
-For example, if \(V\) represents the velocity vector of body \(B\), and \(n\)
+For example, if $V$ represents the velocity vector of body $B$, and $n$
 represents the normalized collision vector we calculated earlier:
 
 \begin{tikzpicturecenter}
@@ -164,12 +164,12 @@ represents the normalized collision vector we calculated earlier:
   \draw (b) circle (1.65);
 
   % Red and blue arrows
-  \draw[->, red] (b) -- (4,2.33) node[pos=0.5, below]{\(n\)};
-  \draw[->, blue] (b) -- (4.5,4.5) node[pos=0.5, right]{\(V\)};
+  \draw[->, red] (b) -- (4,2.33) node[pos=0.5, below]{$n$};
+  \draw[->, blue] (b) -- (4.5,4.5) node[pos=0.5, right]{$V$};
 
   % Points in centers
-  \filldraw (a) circle (1pt) node[above right]{\(A\)};
-  \filldraw (b) circle (1pt) node[below right]{\(B\)};
+  \filldraw (a) circle (1pt) node[above right]{$A$};
+  \filldraw (b) circle (1pt) node[below right]{$B$};
 \end{tikzpicturecenter}
 
 Then the dot product would be calculated by:
@@ -213,8 +213,8 @@ The gravitational force of each body is calculated with the following formula.
   F = G \frac{m_1m_2}{r^2}
 \end{displaymath}
 
-Where \(G\) is the gravitational constant, \(m_1\) and \(m_2\) are the mass of
-each body, and \(r\) is the distance between the objects.
+Where $G$ is the gravitational constant, $m_1$ and $m_2$ are the mass of each
+body, and $r$ is the distance between the objects.
 
 The effect of a force is to accelerate the body. The relationship is the
 following.
@@ -223,8 +223,8 @@ following.
   F = m a
 \end{displaymath}
 
-Where \(F\) is the force, \(m\) is the mass and \(a\) is the acceleration of
-the body. Therefore, to get the acceleration from the force, we can do the
+Where $F$ is the force, $m$ is the mass and $a$ is the acceleration of the
+body. Therefore, to get the acceleration from the force, we can do the
 following.
 
 \begin{displaymath}
@@ -240,9 +240,9 @@ acceleration with some trigonometry.
   a_y &= a \sin(\theta) \\
 \end{align*}
 
-Where \(a_x\) and \(a_y\) are the X and Y accelerations, \(a\) is the
-acceleration, and \(\theta\) is the angle that the line joining the centers make
-with the horizontal.
+Where $a_x$ and $a_y$ are the X and Y accelerations, $a$ is the acceleration,
+and $\theta$ is the angle that the line joining the centers make with the
+horizontal.
 
 \newpage
 
