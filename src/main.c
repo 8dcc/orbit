@@ -210,88 +210,48 @@ static void apply_acceleration(Body* a, Body* b) {
     const float b_width = b->mass;
 
     /*
-     * The distance between points 'a' and 'b' is the hypotenuse of the triangle
-     * formed by the X and Y differences between 'a' and 'b'.
-     *    d = sqrt((bx - ax)^2 + (by - ay)^2)
+     * TODO: Velocity of B should be accounted. We would need to call this
+     * function with all possible unique body pairs in `bodies' and change
+     * both A and B speeds.
+     */
+
+    /*
+     * NOTE: For more information on the math behind this function, see the file
+     * `../collision.tex' and `../collision.pdf'.
      */
     float dx       = b->x - a->x;
     float dy       = b->y - a->y;
     float distance = sqrtf(dx * dx + dy * dy);
 
-    /*
-     * If the distance between the two bodies is smaller than their radius
-     * combined, they are colliding.
-     */
     if (a_width + b_width >= distance) {
-        /* Calculate the dot product of the velocity.
-         * TODO: Improve explanation.
-         * TODO: Add LaTeX with formulas. */
-        float nx          = dx / distance;
-        float ny          = dy / distance;
+        /* The bodies are colliding.
+         * Calculate the reflection angle and bounce back with the new
+         * velocity. */
+        float nx = dx / distance;
+        float ny = dy / distance;
+
         float dot_product = a->vel_x * nx + a->vel_y * ny;
+        float nvx         = dot_product * nx;
+        float nvy         = dot_product * ny;
 
-        /* Normalize the distance vector */
-        float norm_x = dot_product * nx;
-        float norm_y = dot_product * ny;
+        float perpendicular_x = a->vel_x - nvx;
+        float perpendicular_y = a->vel_y - nvy;
 
-        /* Calculate the perpendicular normalized vector to the velocity */
-        float perpendicular_x = a->vel_x - norm_x;
-        float perpendicular_y = a->vel_y - norm_y;
-
-        /* TODO: Improve explanation */
-        a->vel_x = perpendicular_x - norm_x;
-        a->vel_y = perpendicular_y - norm_y;
-
-        /* TODO: Velocity of B should be accounted. We would need to call this
-         * function with all possible unique body pairs in `bodies' and change
-         * both A and B speeds. */
+        a->vel_x = perpendicular_x - nvx;
+        a->vel_y = perpendicular_y - nvy;
         return;
     }
 
-    /*
-     * The gravitational force of each body is calculated with this formula:
-     *    F = G * (m1 * m2) / r^2
-     * Where 'G' is the gravitational constant, 'm1' and 'm2' are the mass of
-     * each body, and 'r' is the distance between the objects. In this case, we
-     * can skip this 'G' constant since we are using pixels.
-     */
+    /* The bodies are not colliding, attract to each other.
+     * Calculate the force, the magnitude of the acceleration, the acceleration
+     * angle, the acceleration vector, and add it to the velocity. */
     float force = (a->mass * b->mass) / (distance * distance);
+    float acc   = force / a->mass;
 
-    /*
-     * To get the angle in radians, we would need to get the position of 'b'
-     * relative to 'a'. That is, the position of 'b' if 'a' was (0,0). Then, we
-     * can get the 2-argument arctangent using atan2.
-     *     ang = atan2((by - ay), (bx - ax))
-     */
     float rad_ang = atan2f(dy, dx);
+    float acc_x   = acc * cosf(rad_ang);
+    float acc_y   = acc * sinf(rad_ang);
 
-    /*
-     * The effect of a force is to accelerate the body. The relationship is the
-     * following:
-     *    F = m * a
-     * Where 'F' is the force, 'm' is the mass and 'a' is the acceleration of
-     * the body. Therefore, to get the acceleration from the force:
-     *    a = F / m
-     */
-    float acc = force / a->mass;
-
-    /*
-     * The force has a direction. It acts towards the direction of the line
-     * joining the centres of the two bodies. We can get the X and Y coordinates
-     * of the acceleration with some trigonometry.
-     *     ax = a * cos(ang)
-     *     ay = a * sin(ang)
-     * Where 'ax' and 'ay' are the X and Y accelerations, 'a' is the
-     * acceleration, and 'ang' is the angle that the line joining the centers
-     * make with the horizontal.
-     */
-    float acc_x = acc * cosf(rad_ang);
-    float acc_y = acc * sinf(rad_ang);
-
-    /*
-     * Since we know the bodies are not colliding, we can get the bodies closer
-     * by updating their velocities.
-     */
     a->vel_x += acc_x;
     a->vel_y += acc_y;
 }
