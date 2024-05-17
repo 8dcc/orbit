@@ -38,8 +38,6 @@ Since it's an elastic collision, the kinetic energy will remain the same after
 the impact. For now, we will ignore the masses and focus on the impact and the
 reflection itself.
 
-\newpage
-
 \section{Distance between the bodies}
 
 The distance between two bodies can be calculated with the hypotenuse of a right
@@ -103,9 +101,9 @@ Where \(u\) is the vector, \(\hat{u}\) is the normalized vector, and \(\|u\|\)
 is the norm or magnitude of the vector.
 
 We normalize our impact vector (the line between the centers) by dividing
-\(\Delta_x\) and \(\Delta_y\) by its length, which is the total distance we
-calculated earlier. This normalized vector will be used to determine the
-direction of the impact.
+\(\Delta_x\) and \(\Delta_y\) by the length of the vector, which we calculated
+earlier. This normalized vector will be used to determine the direction of the
+impact.
 
 \begin{align*}
   n_x &= \frac{\Delta_x}{d} \\
@@ -116,12 +114,11 @@ direction of the impact.
 
 We need to determine the magnitude of the velocity of \(A\) that is going
 torwards the center of \(B\). We can get a scalar that represents this magnitude
-with the dot product of the velocity and the normalized vector we just
-calculated.
+with the dot product.
 
 The dot product or scalar product takes two vectors and returns a scalar that
 represents the projection of one vector onto the other. In simpler terms, it's a
-way of quantifying how much of vector \(A\) is aligned with vector \(B\).
+way of quantifying how aligned is vector \(A\) with vector \(B\).
 
 If the dot product is positive, \(A\) has a component in the same direction as
 \(B\). If the dot product is zero, \(A\) and \(B\) are perpendicular. If it's
@@ -130,21 +127,26 @@ negative, \(A\) has a component in the opposite direction of \(B\).
 \begin{tikzpicturecenter}
   \draw[thin, gray, dotted] (0,0) grid (13,4);
 
-  \draw[->] (1,1) -- (2,3) node[above]{A};
-  \draw[->] (1,1) -- (3,1.5) node[above]{B};
-  \draw (2,0.5) node{\(A \cdot B > 0\)};
+  \draw[<->] (2,3) -- (1,1) -- (3,1.5);
+  \node at (2,3) [above] {A};
+  \node at (3,1.5) [above] {B};
+  \node at (2,0.5) [draw, rectangle] {\(A \cdot B > 0\)};
 
-  \draw[->] (6,1) -- (4.5,2.5) node[above]{A};
-  \draw[->] (6,1) -- (7.5,2.5) node[above]{B};
-  \draw (6,0.5) node{\(A \cdot B = 0\)};
+  \draw[<->] (4.5,2.5) -- (6,1) -- (7.5,2.5);
+  \node at (4.5,2.5) [above] {A};
+  \node at (7.5,2.5) [above] {B};
+  \node at (6,0.5) [draw, rectangle] {\(A \cdot B = 0\)};
 
-  \draw[->] (10,1) -- (9,3) node[above]{A};
-  \draw[->] (10,1) -- (12,1) node[above]{B};
-  \draw (10,0.5) node{\(A \cdot B < 0\)};
+  \draw[<->] (12,1) -- (10,1) -- (9,3);
+  \node at (9,3) [above] {A};
+  \node at (12,1) [above] {B};
+  \node at (10,0.5) [draw, rectangle] {\(A \cdot B < 0\)};
 \end{tikzpicturecenter}
 
 If both vectors are normalized, the returned value will always be in the range
 \([-1,1]\).
+
+\newpage
 
 For example, if \(V\) represents the velocity vector of body \(B\), and \(n\)
 represents the normalized collision vector we calculated earlier:
@@ -177,13 +179,18 @@ Then the dot product would be calculated by:
 \end{displaymath}
 
 The dot product has a direct relationship with the angle between the two
-vectors, since:
+vectors. It can also be calculated with this formula:
 
 \begin{displaymath}
   a \cdot b = \|a\| \|b\| \cos \theta
 \end{displaymath}
 
-% TODO: Calculate angle from dot product
+Therefore, we can calculate the angle with this formula:
+
+\begin{align*}
+  \cos \theta = \frac{a \cdot b}{\|a\| \|b\|} \\
+  \theta = \cos^{-1}(\frac{a \cdot b}{\|a\| \|b\|})
+\end{align*}
 
 In C code:
 
