@@ -120,9 +120,35 @@ The dot product or scalar product takes two vectors and returns a scalar that
 represents the projection of one vector onto the other. In simpler terms, it's a
 way of quantifying how aligned is vector $A$ with vector $B$.
 
-If the dot product is positive, $A$ has a component in the same direction as
-$B$. If the dot product is zero, $A$ and $B$ are perpendicular. If it's
-negative, $A$ has a component in the opposite direction of $B$.
+The formula is the following:
+
+\begin{displaymath}
+  A \cdot B = A_x B_x + A_y B_y
+\end{displaymath}
+
+If both vectors are normalized, the returned value will always be in the range
+$[-1,1]$.
+
+The dot product has a direct relationship with the angle formed by the two
+vectors, and it can also be calculated with this formula:
+
+\begin{displaymath}
+  A \cdot B = \|A\| \|B\| \cos \theta
+\end{displaymath}
+
+Therefore, we could also use it to calculate the angle:
+
+\begin{align*}
+  \cos \theta &= \frac{a \cdot b}{\|a\| \|b\|} \\
+  \theta &= \cos^{-1}(\frac{a \cdot b}{\|a\| \|b\|})
+\end{align*}
+
+\newpage
+
+We can get a lot of information from the dot product. If the dot product is
+positive, $A$ has a component in the same direction as $B$. If the dot product
+is zero, $A$ and $B$ are perpendicular. If it's negative, $A$ has a component in
+the opposite direction of $B$.
 
 \begin{tikzpicturecenter}
   \draw[thin, gray, dotted] (0,0) grid (13,4);
@@ -143,13 +169,11 @@ negative, $A$ has a component in the opposite direction of $B$.
   \node at (10,0.5) [draw, rectangle] {$A \cdot B < 0$};
 \end{tikzpicturecenter}
 
-If both vectors are normalized, the returned value will always be in the range
-$[-1,1]$.
+We can obtain the dot product of $V$ (the velocity of $B$) and $n$ (the
+normalized impact vector we calculated earlier) to determine the amount of
+velocity that was going towards $n$.
 
-\newpage
-
-For example, if $V$ represents the velocity vector of body $B$, and $n$
-represents the normalized collision vector we calculated earlier:
+% TODO
 
 \begin{tikzpicturecenter}
   % Coordinates
@@ -168,29 +192,9 @@ represents the normalized collision vector we calculated earlier:
   \draw[->, blue] (b) -- (4.5,4.5) node[pos=0.5, right]{$V$};
 
   % Points in centers
-  \filldraw (a) circle (1pt) node[above right]{$A$};
-  \filldraw (b) circle (1pt) node[below right]{$B$};
+  \filldraw (a) circle (1pt) node[above right]{A};
+  \filldraw (b) circle (1pt) node[below right]{B};
 \end{tikzpicturecenter}
-
-Then the dot product would be calculated by:
-
-\begin{displaymath}
-  V \cdot n = V_x n_x + V_y n_y
-\end{displaymath}
-
-The dot product has a direct relationship with the angle between the two
-vectors. It can also be calculated with this formula:
-
-\begin{displaymath}
-  a \cdot b = \|a\| \|b\| \cos \theta
-\end{displaymath}
-
-Therefore, we can calculate the angle with this formula:
-
-\begin{align*}
-  \cos \theta = \frac{a \cdot b}{\|a\| \|b\|} \\
-  \theta = \cos^{-1}(\frac{a \cdot b}{\|a\| \|b\|})
-\end{align*}
 
 In C code:
 
