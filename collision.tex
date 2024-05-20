@@ -21,7 +21,7 @@
 % Remove author and extra info from the headers
 \pagestyle{plain}
 
-% New environment adding spacing for tikz pictures
+% New environment adding spacing for TikZ pictures
 \newenvironment{tikzpicturecenter}
 {\begin{center}\begin{tikzpicture}}
 {\end{tikzpicture}\end{center}}
@@ -42,7 +42,8 @@ reflection itself.
 
 The distance between two bodies can be calculated with the hypotenuse of a right
 triangle whose two cathetus are the difference between the $x$ and $y$
-coordinates of each center.
+coordinates of each center. In other words, the distance between $A$ and $B$ is
+the magitude of the vector $\vec{AB}$, noted as $\|\vec{AB}\|$.
 
 % NOTE: Environment defined above
 \begin{tikzpicturecenter}
@@ -58,7 +59,7 @@ coordinates of each center.
   \draw (b) circle (1.5);
 
   % Lines
-  \draw[thick] (a) -- (b) node[pos=0.5, above right]{$d$};
+  \draw[thick] (a) -- (b) node[pos=0.5, above right]{$m$};
   \draw[thick, blue] (2,2) -- (a) node[pos=0.5, left]{$\Delta_y$};
   \draw[thick, red] (2,2) -- (b) node[pos=0.5, below]{$\Delta_x$};
 
@@ -68,8 +69,10 @@ coordinates of each center.
 \end{tikzpicturecenter}
 
 \begin{displaymath}
-  d = \sqrt{(B_x - A_x)^2 + (B_y - A_y)^2}
+  m = \sqrt{(B_x - A_x)^2 + (B_y - A_y)^2}
 \end{displaymath}
+
+\bigskip
 
 In C code:
 
@@ -94,11 +97,11 @@ By normalizing a vector, we can determine its direction. To get the normalized
 or unitary vector, we can use this formula:
 
 \begin{displaymath}
-  \hat{u} = \frac{u}{\|u\|}
+  u = \frac{v}{\|v\|}
 \end{displaymath}
 
-Where $u$ is the vector, $\hat{u}$ is the normalized vector, and $\|u\|$ is the
-norm or magnitude of the vector.
+Where $v$ is the vector, $\|v\|$ is its norm or magnitude, and $u$ is the
+normalized vector.
 
 We normalize our impact vector (the line between the centers) by dividing
 $\Delta_x$ and $\Delta_y$ by the length of the vector, which we calculated
@@ -169,9 +172,8 @@ the opposite direction of $B$.
   \node at (10,0.5) [draw, rectangle] {$A \cdot B < 0$};
 \end{tikzpicturecenter}
 
-We can obtain the dot product of $V$ (the velocity of $B$) and $n$ (the
-normalized impact vector we calculated earlier) to determine the amount of
-velocity that was going towards $n$.
+We can obtain the dot product of $V$ and $n$ to quantify how much of $B$'s
+velocity that was going towards $A$.
 
 % TODO
 
@@ -188,13 +190,20 @@ velocity that was going towards $n$.
   \draw (b) circle (1.65);
 
   % Red and blue arrows
-  \draw[->, red] (b) -- (4,2.33) node[pos=0.5, below]{$n$};
-  \draw[->, blue] (b) -- (4.5,4.5) node[pos=0.5, right]{$V$};
+  \draw[red] (b) -- (a) node[pos=0.75, below]{$\vec{AB}$};
+  \draw[black, ->, dashed] (b) -- (4,2.333) node[pos=0.5, below]{$n$};
+  \draw[blue, ->] (b) -- (4.5,4.5) node[pos=0.5, right]{$V$};
 
   % Points in centers
   \filldraw (a) circle (1pt) node[above right]{A};
   \filldraw (b) circle (1pt) node[below right]{B};
 \end{tikzpicturecenter}
+
+In the last figure, $n$ represents the normalized impact vector we calculated
+earlier, although its magnitude might not be very accurate for that specific
+example.
+
+\bigskip
 
 In C code:
 
