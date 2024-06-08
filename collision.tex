@@ -3,33 +3,70 @@
 \title{Elastic collisions}
 \author{8dcc}
 
-% Various math utilities, like align*
-\usepackage{amsmath}
-
-% Graphs
-\usepackage{tikz}
-
-% Code highlighting
-\usepackage{listings}
+% ------------------------------------------------------------------------------
+% Packages
+% ------------------------------------------------------------------------------
 
 % Hyperlinks
 \usepackage[hidelinks]{hyperref}
 
-% Change the spacing between paragraphs
-%\setlength{\parskip}{\baselineskip}
+% Slightly smaller margins
+\usepackage[a4paper,
+            left=4cm,
+            right=4cm,
+            top=3cm,
+            bottom=3cm,
+            footskip=1cm]{geometry}
 
-% Remove author and extra info from the headers
-\pagestyle{plain}
+% Math
+\usepackage{amsmath}
+
+% Graphs
+\usepackage{tikz}
+% Use Calc library for coordinate calculations
+\usetikzlibrary{calc}
+% Change default arrow style
+\tikzset{>=stealth}
 
 % New environment adding spacing for TikZ pictures
 \newenvironment{tikzpicturecenter}
 {\begin{center}\begin{tikzpicture}}
 {\end{tikzpicture}\end{center}}
 
+% Code highlighting.
+\usepackage{listings}
+\lstset{
+  % Showing spaces
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  % Indentation and breaks
+  tabsize=4,
+  breaklines=true,
+  breakatwhitespace=true,
+  columns=flexible,
+  % Show left, right, top and bottom borders
+  frame=tblr,
+  % Misc
+  aboveskip=3mm,
+  belowskip=3mm,
+  basicstyle={\small\ttfamily},
+}
+
+% Different monospace font for code blocks (listings)
+\usepackage{inconsolata}
+
+% Remove author and extra info from the headers
+\pagestyle{plain}
+
+% ------------------------------------------------------------------------------
+% Document start
+% ------------------------------------------------------------------------------
 \begin{document}
+
 \maketitle
 
-This document will try to explain the math behind the collision simulations. The
+This document will try to explain the math behind my collision simulations. The
 simulations will progressively get more complex. For the simplest case, we are
 going to simulate an elastic collision between a body $A$ and a immobile body
 $B$.
@@ -38,7 +75,9 @@ Since it's an elastic collision, the kinetic energy will remain the same after
 the impact. For now, we will ignore the masses and focus on the impact and the
 reflection itself.
 
+% ------------------------------------------------------------------------------
 \section{Distance between the bodies}
+% ------------------------------------------------------------------------------
 
 The distance between two bodies can be calculated with the hypotenuse of a right
 triangle whose two cathetus are the difference between the $x$ and $y$
@@ -82,16 +121,18 @@ In C code:
   float distance = sqrtf(dx * dx + dy * dy);
 \end{lstlisting}
 
-\newpage
-
+% ------------------------------------------------------------------------------
 \section{Bouncing off another immobile body}
+% ------------------------------------------------------------------------------
 
 If the sum of the radius of $A$ and $B$ is greater or equal than the distance
 between the centers, they are colliding. Since this is an elastic collision, and
 since the second body is immobile, the velocity of the first body will remain
 the same, but its direction will change.
 
+% ------------------------------------------------------------------------------
 \subsection{Normalization}
+% ------------------------------------------------------------------------------
 
 By normalizing a vector, we can determine its direction. To get the normalized
 or unitary vector, we can use this formula:
@@ -103,7 +144,7 @@ or unitary vector, we can use this formula:
 Where $v$ is the vector, $\|v\|$ is its norm or magnitude, and $u$ is the
 normalized vector.
 
-We normalize our impact vector (the line between the centers) by dividing
+To normalize our impact vector (the line between the centers), we divide
 $\Delta_x$ and $\Delta_y$ by the length of the vector, which we calculated
 earlier. This normalized vector will be used to determine the direction of the
 impact.
@@ -113,69 +154,8 @@ impact.
   n_y &= \frac{\Delta_y}{d}
 \end{align*}
 
-\subsection{Dot product}
-
-We need to determine the magnitude of the velocity of $A$ that is going towards
-the center of $B$. We can get a scalar that represents this magnitude with the
-dot product.
-
-The dot product or scalar product takes two vectors and returns a scalar that
-represents the projection of one vector onto the other. In simpler terms, it's a
-way of quantifying how aligned is vector $A$ with vector $B$.
-
-The formula is the following:
-
-\begin{displaymath}
-  A \cdot B = A_x B_x + A_y B_y
-\end{displaymath}
-
-If both vectors are normalized, the returned value will always be in the range
-$[-1,1]$.
-
-The dot product has a direct relationship with the angle formed by the two
-vectors, and it can also be calculated with this formula:
-
-\begin{displaymath}
-  A \cdot B = \|A\| \|B\| \cos \theta
-\end{displaymath}
-
-Therefore, we could also use it to calculate the angle:
-
-\begin{align*}
-  \cos \theta &= \frac{a \cdot b}{\|a\| \|b\|} \\
-  \theta &= \cos^{-1}\left(\frac{a \cdot b}{\|a\| \|b\|}\right)
-\end{align*}
-
-\newpage
-
-We can get a lot of information from the dot product. If the dot product is
-positive, $A$ has a component in the same direction as $B$. If the dot product
-is zero, $A$ and $B$ are perpendicular. If it's negative, $A$ has a component in
-the opposite direction of $B$.
-
-\begin{tikzpicturecenter}
-  \draw[thin, gray, dotted] (0,0) grid (13,4);
-
-  \draw[<->] (2,3) -- (1,1) -- (3,1.5);
-  \node at (2,3) [above] {A};
-  \node at (3,1.5) [above] {B};
-  \node at (2,0.5) [draw, rectangle] {$A \cdot B > 0$};
-
-  \draw[<->] (4.5,2.5) -- (6,1) -- (7.5,2.5);
-  \node at (4.5,2.5) [above] {A};
-  \node at (7.5,2.5) [above] {B};
-  \node at (6,0.5) [draw, rectangle] {$A \cdot B = 0$};
-
-  \draw[<->] (12,1) -- (10,1) -- (9,3);
-  \node at (9,3) [above] {A};
-  \node at (12,1) [above] {B};
-  \node at (10,0.5) [draw, rectangle] {$A \cdot B < 0$};
-\end{tikzpicturecenter}
-
-We can obtain the dot product of $V$ and $n$ to quantify how much of $B$'s
-velocity that was going towards $A$.
-
-% TODO
+In the next figure, $n$ represents the normalized impact vector, although its
+magnitude might not be very accurate for this specific example.
 
 \begin{tikzpicturecenter}
   % Coordinates
@@ -192,6 +172,144 @@ velocity that was going towards $A$.
   % Red and blue arrows
   \draw[red] (b) -- (a) node[pos=0.75, below]{$\vec{AB}$};
   \draw[black, ->, dashed] (b) -- (4,2.333) node[pos=0.5, below]{$n$};
+
+  % Points in centers
+  \filldraw (a) circle (1pt) node[above right]{A};
+  \filldraw (b) circle (1pt) node[below right]{B};
+\end{tikzpicturecenter}
+
+% ------------------------------------------------------------------------------
+\subsection{Dot product}
+% ------------------------------------------------------------------------------
+
+We need to determine the magnitude of the velocity of $A$ that is going towards
+the center of $B$. We can get a scalar that represents this magnitude with the
+dot product.
+
+The dot product or scalar product takes two vectors and returns a scalar that
+represents the projection of one vector onto the other. In simpler terms, it's a
+way of quantifying how aligned is vector $a$ with vector $b$.
+
+The formula is the following:
+
+\begin{displaymath}
+  a \cdot b = a_x b_x + a_y b_y
+\end{displaymath}
+
+If both vectors are normalized, the returned value will always be in the range
+$[-1,1]$.
+
+The dot product has a direct relationship with the angle formed by the two
+vectors, and it can also be calculated with this formula:
+
+\begin{displaymath}
+  a \cdot b = \|a\| \|b\| \cos \theta
+\end{displaymath}
+
+Therefore, we could also use it to calculate the angle:
+
+\begin{align*}
+  \cos \theta &= \frac{a \cdot b}{\|a\| \|b\|} \\
+  \theta &= \cos^{-1} \left( \frac{a \cdot b}{\|a\| \|b\|} \right)
+\end{align*}
+
+This graph might help understand where those values come from. For a more
+detailed and interactive explanation of the dot product, see Math Insight
+\cite{dotproduct_mathinsight}.
+
+\begin{tikzpicturecenter}
+  \pgfmathsetmacro{\Radius}{2}
+  \pgfmathsetmacro{\ArcRadius}{1}
+
+  \pgfmathsetmacro{\ArcAngleBeta}{40}
+
+  \pgfmathsetmacro{\BetaX}{\ArcRadius*cos(\ArcAngleBeta)}
+  \pgfmathsetmacro{\BetaY}{\ArcRadius*sin(\ArcAngleBeta)}
+
+  \pgfmathsetmacro{\LabelX}{\ArcRadius*cos(\ArcAngleBeta/2)}
+  \pgfmathsetmacro{\LabelY}{\ArcRadius*sin(\ArcAngleBeta/2)}
+
+  \coordinate (o) at (0,0);
+  \coordinate (ub) at (\BetaX, \BetaY);
+  \coordinate (a) at (\Radius,0);
+  \coordinate (b) at ($\Radius*(ub)$);
+  \coordinate (aprime) at ($(\Radius*\BetaX, 0)$);
+
+  \filldraw[violet, fill opacity=0.3] (o) -- (\ArcRadius,0) arc (0:\ArcAngleBeta:\ArcRadius) -- cycle;
+  \node at (\LabelX, \LabelY) [left] {$\theta$};
+
+  \draw[dotted] (o) circle (\Radius);
+
+  \draw[->] (o) -- (a) node[right]{$\vec{a}$};
+  \draw[->] (o) -- (b) node[xshift=0.2cm, yshift=0.2cm]{$\vec{b}$};
+  \draw[thick, red] (o) -- (aprime) node[below, pos=0.5]{$\|b\| \cos(\theta)$};
+  \draw[dashed, gray] (b) -- ($(\Radius*\BetaX, 0)$);
+  \filldraw (o) circle (1pt);
+  \filldraw[red] (aprime) circle (1pt);
+\end{tikzpicturecenter}
+
+We can get a lot of information from the dot product. If the dot product is
+positive, $a$ has a component in the same direction as $b$. If the dot product
+is zero, $a$ and $b$ are perpendicular. If it's negative, $a$ has a component in
+the opposite direction of $b$.
+
+\begin{tikzpicturecenter}
+  \draw[thin, gray, dotted] (0,0) grid (13,4);
+
+  \draw[<->] (2,3) -- (1,1) -- (3,1.5);
+  \node at (2,3) [above] {$a$};
+  \node at (3,1.5) [above] {$b$};
+  \node at (2,0.5) [draw, rectangle] {$a \cdot b > 0$};
+
+  \draw[<->] (4.5,2.5) -- (6,1) -- (7.5,2.5);
+  \node at (4.5,2.5) [above] {$a$};
+  \node at (7.5,2.5) [above] {$b$};
+  \node at (6,0.5) [draw, rectangle] {$a \cdot b = 0$};
+
+  \draw[<->] (12,1) -- (10,1) -- (9,3);
+  \node at (9,3) [above] {$a$};
+  \node at (12,1) [above] {$b$};
+  \node at (10,0.5) [draw, rectangle] {$a \cdot b < 0$};
+\end{tikzpicturecenter}
+
+% ------------------------------------------------------------------------------
+\subsection{Perpendicular velocity}
+% ------------------------------------------------------------------------------
+
+We can calculate the dot product of $v$ (the velocity vector of body $B$) and
+$n$ (the normalized vector of $\vec{AB}$) to quantify how much of $B$'s
+\textbf{velocity} was going towards $A$.
+
+\begin{displaymath}
+  v \cdot n = v_x n_x + v_y n_y
+\end{displaymath}
+
+Since we are working with normalized vectors, we can multiply this result by the
+normalized impact vector, $n$, to obtain a vector with the direction of $n$, but
+the magnitude of the dot product.
+
+\begin{displaymath}
+  n' = \left( v \cdot n \right) n
+\end{displaymath}
+
+In the next graph the dot product of $n$ and $v$ could be, for example, 1.25, and we
+multiplied that value by $n$ to obtain $n'$.
+
+\begin{tikzpicturecenter}
+  % Coordinates
+  \coordinate (a) at (2,3);
+  \coordinate (b) at (5,2);
+
+  % Grid
+  \draw[thin, gray, dotted] (0,0) grid (7,5);
+
+  % Circles. The radius sum the distance between the centers (~3.16)
+  \draw (a) circle (1.5);
+  \draw (b) circle (1.65);
+
+  % Red and blue arrows
+  \draw[red] (b) -- (a) node[pos=0.75, below]{$\vec{AB}$};
+  \draw[black, ->, dashed] (b) -- (3.75,2.415) node[pos=0.5, below]{$n'$};
   \draw[blue, ->] (b) -- (4.5,4.5) node[pos=0.5, right]{$V$};
 
   % Points in centers
@@ -199,26 +317,37 @@ velocity that was going towards $A$.
   \filldraw (b) circle (1pt) node[below right]{B};
 \end{tikzpicturecenter}
 
-In the last figure, $n$ represents the normalized impact vector we calculated
-earlier, although its magnitude might not be very accurate for that specific
-example.
+Now that we have quantified how ``direct'' the impact was, we can use this $n'$
+vector to calculate how $B$ would bounce off $A$ in an elastic collision.
+
+\begin{displaymath}
+  v' = v - 2 n'
+\end{displaymath}
+
+% TODO
+However, I am not entirely sure why we need to multiply $n'$ by two
+(i.e. subtract it twice from $v$).
 
 \bigskip
 
 In C code:
 
 \begin{lstlisting}[language=C]
-  // Normalize collision vector
   float nx = dx / distance;
   float ny = dy / distance;
-  float dot_product = a.vx * nx + a.vy * ny;
-  // TODO
+  float dot_product = b.vx * nx + b.vy * ny;
+  float nvx = dot_product * nx;
+  float nvy = dot_product * ny;
+  float perpendicular_x = b.vx - nvx;
+  float perpendicular_y = b.vy - nvy;
+  float final_vx = perpendicular_x - nvx;
+  float final_vy = perpendicular_y - nvy;
 \end{lstlisting}
 
-\newpage
-
-% TODO: Last section
+% ------------------------------------------------------------------------------
 \section{Gravitational force}
+% ------------------------------------------------------------------------------
+% TODO: Last section
 
 The gravitational force of each body is calculated with the following formula.
 
@@ -257,7 +386,9 @@ Where $a_x$ and $a_y$ are the X and Y accelerations, $a$ is the acceleration,
 and $\theta$ is the angle that the line joining the centers make with the
 horizontal.
 
-\newpage
+% ------------------------------------------------------------------------------
+% Bibliography
+% ------------------------------------------------------------------------------
 
 \begin{thebibliography}{9}
 \bibitem{elastic}
