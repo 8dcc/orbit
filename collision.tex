@@ -140,10 +140,10 @@ By normalizing a vector, we can determine its direction. To get the normalized
 or unitary vector, we can use this formula:
 
 \begin{displaymath}
-  u = \frac{v}{\|v\|}
+  \hat{u} = \frac{v}{\|v\|}
 \end{displaymath}
 
-Where $v$ is the vector, $\|v\|$ is its norm or magnitude, and $u$ is the
+Where $v$ is the vector, $\|v\|$ is its norm or magnitude, and $\hat{u}$ is the
 normalized vector.
 
 To normalize our impact vector (the line between the centers), we divide
@@ -161,23 +161,23 @@ magnitude might not be very accurate for this specific example.
 
 \begin{tikzpicturecenter}
   % Coordinates
-  \coordinate (a) at (2,3);
-  \coordinate (b) at (5,2);
+  \coordinate (a) at (5,2);
+  \coordinate (b) at (2,3);
 
   % Grid
   \draw[thin, gray, dotted] (0,0) grid (7,5);
 
   % Circles. The radius sum the distance between the centers (~3.16)
-  \draw (a) circle (1.5);
-  \draw (b) circle (1.65);
+  \draw (a) circle (1.65);
+  \draw (b) circle (1.5);
 
   % Red and blue arrows
-  \draw[red] (b) -- (a) node[pos=0.75, below]{$\vec{AB}$};
-  \draw[black, ->, dashed] (b) -- (4,2.333) node[pos=0.5, below]{$n$};
+  \draw[red] (a) -- (b) node[pos=0.75, below]{$\vec{AB}$};
+  \draw[black, ->, dashed] (a) -- (4,2.333) node[pos=0.5, below]{$n$};
 
   % Points in centers
-  \filldraw (a) circle (1pt) node[above right]{A};
-  \filldraw (b) circle (1pt) node[below right]{B};
+  \filldraw (a) circle (1pt) node[below right]{$A$};
+  \filldraw (b) circle (1pt) node[above right]{$B$};
 \end{tikzpicturecenter}
 
 % ------------------------------------------------------------------------------
@@ -310,49 +310,43 @@ the opposite direction of $b$.
 \subsection{Perpendicular velocity}
 % ------------------------------------------------------------------------------
 
-We can calculate the dot product of $v$ (the velocity vector of body $B$) and
-$n$ (the normalized vector of $\vec{AB}$) to quantify how much of $B$'s
-\textbf{velocity} was going towards the center of body $A$.
-
-\begin{displaymath}
-  v \cdot n = v_x n_x + v_y n_y
-\end{displaymath}
-
-Since we are working with normalized vectors, we can multiply this result by the
-normalized impact vector, $n$, to obtain a vector with the direction of $n$, but
-the magnitude of the dot product.
+After calculating the dot product of $v$ (the velocity vector of body $A$) and
+$n$ (the normalized vector of $\vec{AB}$), we can multiply it by $n$ to obtain a
+vector with the direction of $n$, but the magnitude of the dot product.
 
 \begin{displaymath}
   n' = \left( v \cdot n \right) n
 \end{displaymath}
 
-In the next graph the dot product of $n$ and $v$ could be, for example, 1.25, and we
-multiplied that value by $n$ to obtain $n'$.
+In the next graph, the dot product of $n$ and $v$ could be, for example, 1.25,
+and we multiplied that value by $n$ to obtain $n'$.
 
 \begin{tikzpicturecenter}
   % Coordinates
-  \coordinate (a) at (2,3);
-  \coordinate (b) at (5,2);
+  \coordinate (a) at (5,2);
+  \coordinate (b) at (2,3);
 
   % Grid
   \draw[thin, gray, dotted] (0,0) grid (7,5);
 
   % Circles. The radius sum the distance between the centers (~3.16)
-  \draw (a) circle (1.5);
-  \draw (b) circle (1.65);
+  \draw (a) circle (1.65);
+  \draw (b) circle (1.5);
 
   % Red and blue arrows
-  \draw[red] (b) -- (a) node[pos=0.75, below]{$\vec{AB}$};
-  \draw[black, ->, dashed] (b) -- (3.75,2.415) node[pos=0.5, below]{$n'$};
-  \draw[blue, ->] (b) -- (4.5,4.5) node[pos=0.5, right]{$V$};
+  \draw[red] (a) -- (b) node[pos=0.75, below]{$\vec{AB}$};
+  \draw[black, ->, dashed] (a) -- (3.75,2.415) node[pos=0.5, below]{$n'$};
+  \draw[blue, ->] (a) -- (4.5,4.5) node[pos=0.5, right]{$V$};
+
+  \draw[->] (a) -- ($(a)+(1.9,-1.7)$);
 
   % Points in centers
-  \filldraw (a) circle (1pt) node[above right]{A};
-  \filldraw (b) circle (1pt) node[below right]{B};
+  \filldraw (a) circle (1pt) node[below right]{$A$};
+  \filldraw (b) circle (1pt) node[above right]{$B$};
 \end{tikzpicturecenter}
 
 Now that we have quantified how ``direct'' the impact was, we can use this $n'$
-vector to calculate how $B$ would bounce off $A$ in an elastic collision.
+vector to calculate how $A$ would bounce off $B$ in an elastic collision.
 
 \begin{displaymath}
   v' = v - 2 n'
