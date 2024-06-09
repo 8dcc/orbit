@@ -3,26 +3,18 @@ CC=gcc
 CFLAGS=-Wall -Wextra -ggdb3
 LDFLAGS=$(shell sdl2-config --cflags --libs) -lm
 
-OBJ_FILES=main.c.o
-OBJS=$(addprefix obj/, $(OBJ_FILES))
-
-BIN=orbit
+BINS=orbit.out simple-collision.out
 
 #-------------------------------------------------------------------------------
 
 .PHONY: clean all
 
-all: $(BIN)
+all: $(BINS)
 
 clean:
-	rm -f $(OBJS)
-	rm -f $(BIN)
+	rm -f $(BINS)
 
 #-------------------------------------------------------------------------------
 
-$(BIN): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS)
-
-obj/%.c.o : src/%.c
-	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c -o $@ $<
+$(BINS): %.out : src/%.c
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
