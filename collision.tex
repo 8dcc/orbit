@@ -25,6 +25,8 @@
 \usepackage{tikz}
 % Use Calc library for coordinate calculations
 \usetikzlibrary{calc}
+% Use Decorations for drawing braces
+\usetikzlibrary{decorations.pathreplacing}
 % Change default arrow style
 \tikzset{>=stealth}
 
@@ -200,22 +202,20 @@ If both vectors are normalized, the returned value will always be in the range
 $[-1,1]$.
 
 The dot product has a direct relationship with the angle formed by the two
-vectors, and it can also be calculated with this formula:
+vectors. The dot product of two \textbf{unit vectors} is the cosine of the
+angle.
+
+\begin{displaymath}
+  \hat{a} \cdot \hat{b} = \cos \theta
+\end{displaymath}
+
+To calculate the dot product of non-normalized vectors, this formula is used:
 
 \begin{displaymath}
   a \cdot b = \|a\| \|b\| \cos \theta
 \end{displaymath}
 
-Therefore, we could also use it to calculate the angle:
-
-\begin{align*}
-  \cos \theta &= \frac{a \cdot b}{\|a\| \|b\|} \\
-  \theta &= \cos^{-1} \left( \frac{a \cdot b}{\|a\| \|b\|} \right)
-\end{align*}
-
-This graph might help understand where those values come from. For a more
-detailed and interactive explanation of the dot product, see Math Insight
-\cite{dotproduct_mathinsight}.
+You can think of the dot product as the shadow that $a$ projects over $b$.
 
 \begin{tikzpicturecenter}
   \pgfmathsetmacro{\Radius}{2}
@@ -231,22 +231,56 @@ detailed and interactive explanation of the dot product, see Math Insight
 
   \coordinate (o) at (0,0);
   \coordinate (ub) at (\BetaX, \BetaY);
-  \coordinate (a) at (\Radius,0);
-  \coordinate (b) at ($\Radius*(ub)$);
-  \coordinate (aprime) at ($(\Radius*\BetaX, 0)$);
+  \coordinate (a1) at (\Radius,0);
+  \coordinate (b1) at ($\Radius*(ub)$);
+  \coordinate (a2) at ($1.7*(a1)$);
+  \coordinate (b2) at ($1.7*(b1)$);
+  \coordinate (b1shadow) at ($(\Radius*\BetaX, 0)$);
+  \coordinate (b2shadow) at ($(1.7*\Radius*\BetaX, 0)$);
 
-  \filldraw[violet, fill opacity=0.3] (o) -- (\ArcRadius,0) arc (0:\ArcAngleBeta:\ArcRadius) -- cycle;
+  % The purple arc
+  \filldraw[violet, fill opacity=0.2] (o) -- (\ArcRadius,0) arc (0:\ArcAngleBeta:\ArcRadius) -- cycle;
   \node at (\LabelX, \LabelY) [left] {$\theta$};
 
+  % Dotted circumference
   \draw[dotted] (o) circle (\Radius);
 
-  \draw[->] (o) -- (a) node[right]{$\vec{a}$};
-  \draw[->] (o) -- (b) node[xshift=0.2cm, yshift=0.2cm]{$\vec{b}$};
-  \draw[thick, red] (o) -- (aprime) node[below, pos=0.5]{$\|b\| \cos(\theta)$};
-  \draw[dashed, gray] (b) -- ($(\Radius*\BetaX, 0)$);
+  % Sine dashed lines ("shadows")
+  \draw[dashed, gray] (b1) -- (b1shadow);
+  \draw[dashed, gray] (b2) -- (b2shadow);
+
+  % Gray A and B lines
+  \draw[->, thick, gray] (o) -- (a2) node[right]{$\vec{a}$};
+  \draw[->, thick, gray] (o) -- (b2) node[yshift=0.2cm, xshift=0.2cm]{$\vec{b}$};
+
+  % Black UA and UB lines and dots
+  \draw[] (o) -- (a1);
+  \filldraw (a1) circle (1pt) node[above right]{$\hat{a}$};
+  \draw[] (o) -- (b1) node[yshift=0.3cm, xshift=-0.3cm, pos=0.5]{$r = 1$};
+  \filldraw (b1) circle (1pt) node[yshift=0.4cm]{$\hat{b}$};
+
+  % Brace to indicate the cosine of the normalized vectors
+  \draw[decorate, decoration={brace,amplitude=5pt,mirror}] (o) -- (b1shadow)
+  node [midway, yshift=-0.35cm] {$\hat{a} \cdot \hat{b} = \cos(\theta)$};
+
+  % Brace to indicate the cosine of the non-normalized vectors
+  \draw[decorate, decoration={brace,amplitude=5pt,mirror,raise=0.7cm}] (o) -- (b2shadow)
+  node [midway, yshift=-1.05cm] {$\vec{a} \cdot \vec{b}$};
+
+  % Center of the circumference
   \filldraw (o) circle (1pt);
-  \filldraw[red] (aprime) circle (1pt);
 \end{tikzpicturecenter}
+
+For a more detailed and interactive explanation of the dot product, see Math
+Insight \cite{dotproduct_mathinsight}.
+
+With this in mind, the dot product can be used to calculate the angle itself,
+although this won't be used for the simulation.
+
+\begin{align*}
+  \cos \theta &= \frac{a \cdot b}{\|a\| \|b\|} \\
+  \theta &= \cos^{-1} \left( \frac{a \cdot b}{\|a\| \|b\|} \right)
+\end{align*}
 
 We can get a lot of information from the dot product. If the dot product is
 positive, $a$ has a component in the same direction as $b$. If the dot product
@@ -278,7 +312,7 @@ the opposite direction of $b$.
 
 We can calculate the dot product of $v$ (the velocity vector of body $B$) and
 $n$ (the normalized vector of $\vec{AB}$) to quantify how much of $B$'s
-\textbf{velocity} was going towards $A$.
+\textbf{velocity} was going towards the center of body $A$.
 
 \begin{displaymath}
   v \cdot n = v_x n_x + v_y n_y
@@ -335,9 +369,11 @@ In C code:
 \begin{lstlisting}[language=C]
   float nx = dx / distance;
   float ny = dy / distance;
+
   float dot_product = b.vx * nx + b.vy * ny;
   float nvx = dot_product * nx;
   float nvy = dot_product * ny;
+
   float perpendicular_x = b.vx - nvx;
   float perpendicular_y = b.vy - nvy;
   float final_vx = perpendicular_x - nvx;
