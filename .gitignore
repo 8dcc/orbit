@@ -1,6 +1,22 @@
 # Misc
 orbit
 
+# LaTeX
+*.log
+*.4ct
+*.4tc
+*.aux
+*.css
+*.dvi
+*.html
+*.idv
+*.lg
+*.tmp
+*.xref
+*.png
+*.pdf
+*.toc
+
 # Prerequisites
 *.d
 
